@@ -4,7 +4,6 @@ classdef Parachute < SubRocketPart
     properties
         diameter;
         drag_coefficient;
-        reference_area;
         deployment_altitude;
         length;
     end
@@ -20,18 +19,14 @@ classdef Parachute < SubRocketPart
             %   deployment_altitude - Altitude at which the parachute deploys (m).
             %   length - Packed length of the parachute component (m).
             %   mass - Mass of the parachute (kg).
-            %   parent_part - The RocketPart this component is attached to.
+            %   parent_part - The part this component is attached to.
 
             obj@SubRocketPart(name, mass, parent_part);
-            
-            obj.mass = mass;
-            obj.name = name;
+
             obj.diameter = diameter;
             obj.drag_coefficient = drag_coefficient;
             obj.deployment_altitude = deployment_altitude;
             obj.length = length;
-
-            obj.reference_area = pi * (diameter / 2)^2; % Reference area based on diameter
 
         end
 
@@ -51,14 +46,15 @@ classdef Parachute < SubRocketPart
             % Outputs:
             %   I - The inertia tensor as a 3x3 matrix.
 
-            r = obj.diameter / 2; % Radius
+            r = 0.05; % Assuming a packed radius of 5cm, since diameter is for deployed state
+            l = obj.length;
+            m = obj.mass;
 
-            Izz = 0.5 * obj.mass * r^2; % Moment of inertia about the z-axis
-            Ixx = (1/4) * obj.mass * r^2 + (1/12) * obj.mass * obj.length^2; 
-            Iyy = Ixx; 
+            Ixx = (1/12) * m * (3*r^2 + l^2);
+            Iyy = Ixx;
+            Izz = (1/2) * m * r^2;
 
             I = diag([Ixx, Iyy, Izz]);
-
         end
-
     end
+end

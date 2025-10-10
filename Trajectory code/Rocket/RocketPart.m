@@ -12,6 +12,13 @@ classdef RocketPart
 
     methods
 
+        function obj = RocketPart(name, mass)
+
+            obj.name = name;
+            obj.mass = mass;
+
+        end
+
         function cg = compute_cg(obj)
             % Computes the center of gravity of the rocket part.
             %

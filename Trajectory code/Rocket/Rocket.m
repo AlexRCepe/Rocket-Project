@@ -5,7 +5,7 @@ classdef Rocket
 
     properties
         rocketName;
-        parts = RocketPart.empty; % Array of RocketPart objects
+        parts = {}; % Use a cell array to store parts of different classes
     end
 
     methods
@@ -16,19 +16,16 @@ classdef Rocket
             % Inputs:
             %   part - An instance of a class that inherits from RocketPart.
 
+            % Add the new part to the cell array
+            obj.parts{end + 1} = part;
+            
+            if length(obj.parts) > 1 && ~isa(part, "SubRocketPart")
 
-            if isempty(obj.parts)
-
-                obj.parts = part;
-
-            else
-                obj.parts(end + 1) = part;
-
-                if ~(isa(part, "FinSet") | isa(part, "Mass"))
-                    last_part = obj.parts(end - 1);
-                    part.update_position([0, 0, last_part.position(3) + last_part.length]);
-                end
-
+                last_part = obj.parts{end - 1};
+                
+                part.position = [0, 0, last_part.position(3) + last_part.length];
+                obj.parts{end} = part; 
+                
             end
         end
 
@@ -44,9 +41,7 @@ classdef Rocket
             total_mass = 0;
 
             for i = 1:length(obj.parts)
-
-                part = obj.parts(i);
-
+                part = obj.parts{i}; % Access part from cell array
                 if isa(part, "Motor")
                     total_mass = total_mass + part.get_mass_at_time(time);
                 else
@@ -68,18 +63,13 @@ classdef Rocket
             total_mass = obj.get_total_mass(time);
 
             if total_mass == 0
-
                 cg = 0;
                 return;
-
             end
 
             moment_sum = 0;
-
             for i = 1:length(obj.parts)
-
-                part = obj.parts(i);
-
+                part = obj.parts{i}; % Access part from cell array
                 if isa(part, "Motor")
                     part_mass = part.get_mass_at_time(time);
                     part_cg_local = part.get_cg_at_time(time);
@@ -109,12 +99,10 @@ classdef Rocket
             %   I - Moment of inertia tensor (kg*m^2) about the rocket's center of gravity.
 
             cg = obj.get_cg(time);
-            I = 0;
+            I = zeros(3,3); % Initialize as a 3x3 zero matrix
 
             for i = 1:length(obj.parts)
-
-                part = obj.parts(i);
-
+                part = obj.parts{i}; % Access part from cell array
                 if isa(part, "Motor")
                     
                     part_mass = part.get_mass_at_time(time);
@@ -132,8 +120,9 @@ classdef Rocket
                 end
                 
                 % Apply parallel axis theorem
-                d = part_cg - cg;
-                I = I + part_I + part_mass * (d^2 * eye(3) - diag([d^2, d^2, 0]));
+                d_vec = [0, 0, part_cg - cg];
+                d_sq = dot(d_vec, d_vec);
+                I = I + part_I + part_mass * (d_sq * eye(3) - d_vec' * d_vec);
 
 
             end

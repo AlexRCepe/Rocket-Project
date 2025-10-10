@@ -22,8 +22,8 @@ classdef BodyTube < RocketPart
             %   thickness - Wall thickness of the body tube (m).
             %
 
-            obj.name = name;
-            obj.mass = mass;
+            obj@RocketPart(name, mass);
+
             obj.diameter = diameter;
             obj.length = length;
             obj.thickness = thickness;

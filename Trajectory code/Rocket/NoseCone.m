@@ -8,7 +8,6 @@ classdef NoseCone < RocketPart
         shape; % 'conical', 'ogive', 'parabolic', 'elliptical'
         length; % Length of the nose cone [m]
         base_diameter; % Base diameter of the nose cone [m]
-        mass; % Mass of the nose
         parent_cylinder; % Reference to the parent rocket cylinder
 
     end
@@ -25,13 +24,11 @@ classdef NoseCone < RocketPart
             %   mass - Mass of the nose cone (kg).
             %   parent_cylinder - Reference to the parent body tube.
 
-            obj.mass = mass;
-            obj.name = name;
+            obj@RocketPart(name, mass);
 
             obj.shape = shape;
             obj.length = length;
             obj.base_diameter = base_diameter;
-            obj.mass = mass;
             obj.parent_cylinder = parent_cylinder;
 
         end
