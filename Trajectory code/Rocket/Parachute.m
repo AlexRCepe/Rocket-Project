@@ -1,4 +1,5 @@
-classdef Parachute < RocketPart
+classdef Parachute < SubRocketPart
+    % Represents a parachute, including its deployment characteristics.
 
     properties
         diameter;
@@ -9,17 +10,19 @@ classdef Parachute < RocketPart
     end
 
     methods 
-        function obj = Parachute(name, diameter, drag_coefficient, deployment_altitude, length, mass)
-            %PARACHUTE Construct an instance of this class
+        function obj = Parachute(name, diameter, drag_coefficient, deployment_altitude, length, mass, parent_part)
+            % Constructs an instance of the Parachute class.
             %
             % Inputs:
-            %   name - Name of the parachute (string)
-            %   diameter - Diameter of the parachute (m)
-            %   drag_coefficient - Drag coefficient of the parachute (dimensionless)
-            %   deployment_altitude - Altitude at which the parachute deploys (m)
-            %   length - Length of the parachute (m)
-            %   mass - Mass of the parachute (kg)
+            %   name - Name of the parachute (string).
+            %   diameter - Deployed diameter of the parachute (m).
+            %   drag_coefficient - Drag coefficient when deployed.
+            %   deployment_altitude - Altitude at which the parachute deploys (m).
+            %   length - Packed length of the parachute component (m).
+            %   mass - Mass of the parachute (kg).
+            %   parent_part - The RocketPart this component is attached to.
 
+            obj@SubRocketPart(name, mass, parent_part);
             
             obj.mass = mass;
             obj.name = name;
@@ -33,21 +36,20 @@ classdef Parachute < RocketPart
         end
 
         function cg = compute_cg(obj)
-            % COMPUTE_CG Computes the center of gravity of the parachute.
+            % Computes the center of gravity of the packed parachute.
             %
-            %   Output Arguments:
-            %       cg - The position of the parachute's center of
-            %            gravity. [m]
+            % Outputs:
+            %   cg - The center of gravity [x, y, z] in meters, relative to the part's origin.
 
             cg = [0, 0, obj.length / 2]; % Center of gravity is at half the length
 
         end
 
         function I = compute_inertia(obj)
-            % COMPUTE_INERTIA Computes the inertia tensor of the parachute.
+            % Computes the inertia tensor of the packed parachute, modeled as a cylinder.
             %
-            %   Output Arguments:
-            %       I - The inertia tensor as a 3x3 matrix.
+            % Outputs:
+            %   I - The inertia tensor as a 3x3 matrix.
 
             r = obj.diameter / 2; % Radius
 

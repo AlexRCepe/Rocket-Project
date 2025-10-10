@@ -1,5 +1,7 @@
 classdef NoseCone < RocketPart
-    % TODO: chhange once the shape is known for sure
+    % Represents the nose cone of the rocket.
+    % Calculates CG and inertia based on its shape.
+    % TODO: Change once the shape is known for sure.
 
     properties
         
@@ -13,6 +15,15 @@ classdef NoseCone < RocketPart
     
     methods
         function obj = NoseCone(name, shape, length, base_diameter, mass, parent_cylinder)
+            % Constructs an instance of the NoseCone class.
+            %
+            % Inputs:
+            %   name - Name of the nose cone (string).
+            %   shape - Shape of the nose cone ('conical', 'ogive', etc.).
+            %   length - Length of the nose cone (m).
+            %   base_diameter - Diameter of the nose cone base (m).
+            %   mass - Mass of the nose cone (kg).
+            %   parent_cylinder - Reference to the parent body tube.
 
             obj.mass = mass;
             obj.name = name;
@@ -26,8 +37,11 @@ classdef NoseCone < RocketPart
         end
         
         function cg = compute_cg(obj)
-            % COMPUTE_CG Computes the longitudinal center of gravity of the nose cone.
+            % Computes the center of gravity of the nose cone.
             % CG is measured from the tip (z=0) of the nose cone.
+            %
+            % Outputs:
+            %   cg - Center of gravity [x, y, z] in meters, relative to the part's origin.
             
             L = obj.length;
 
@@ -57,8 +71,10 @@ classdef NoseCone < RocketPart
         end
         
         function I = compute_inertia(obj)
-            % COMPUTE_INERTIA Computes the inertia tensor of the nose cone
-            % about its own center of gravity.
+            % Computes the inertia tensor of the nose cone about its own center of gravity.
+            %
+            % Outputs:
+            %   I - Inertia tensor as a 3x3 matrix.
             
             r = obj.base_diameter / 2;
             L = obj.length;

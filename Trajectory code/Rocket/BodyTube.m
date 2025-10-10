@@ -1,4 +1,5 @@
 classdef BodyTube < RocketPart
+    % Represents a cylindrical section of the rocket, such as the main airframe.
 
     properties
 
@@ -11,14 +12,14 @@ classdef BodyTube < RocketPart
     methods
 
         function obj = BodyTube(name, mass, diameter, length, thickness)
-            %BODYTUBE Construct an instance of this class
+            % Constructs an instance of the BodyTube class.
             %
             % Inputs:
-            %   name - Name of the cylinder (string)
-            %   mass - Mass of the cylinder (kg)
-            %   diameter - Diameter of the cylinder (m)
-            %   length - Length of the cylinder (m)
-            %   thickness - Thickness of the cylinder wall (m)
+            %   name - Name of the body tube (string).
+            %   mass - Mass of the body tube (kg).
+            %   diameter - Outer diameter of the body tube (m).
+            %   length - Length of the body tube (m).
+            %   thickness - Wall thickness of the body tube (m).
             %
 
             obj.name = name;
@@ -29,17 +30,20 @@ classdef BodyTube < RocketPart
         end
 
         function cg = compute_cg(obj)
-            %COMPUTE_CG Get the center of gravity of the cylinder
+            % Computes the center of gravity of the body tube.
             %
             % Outputs:
-            %   cg - Center of gravity [x, y, z] in meters
+            %   cg - Center of gravity [x, y, z] in meters, relative to the part's origin.
 
             cg = [0, 0, obj.length / 2];
 
         end
 
         function I = compute_inertia(obj)
-            %COMPUTE_INERTIA Get the inertia tensor of the cylinder
+            % Computes the inertia tensor of the body tube.
+            %
+            % Outputs:
+            %   I - Inertia tensor as a 3x3 matrix.
             r_out = obj.diameter / 2;
             r_in = r_out - obj.thickness; % Inner radius
 

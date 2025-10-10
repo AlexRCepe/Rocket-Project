@@ -1,15 +1,16 @@
-classdef Motor < RocketPart
+classdef Motor < SubRocketPart
+    % Represents the rocket motor, including propellant mass and thrust characteristics.
+    % TODO: Implement the evolution of CG and inertia as propellant is consumed.
 
-    % TODO: evolucion del cg y de la inercia con el consumo del propelente<
+    properties (Access = private)
 
-    properties (visible = 'private')
-
-        p_sl = 101325;
+        exit_area;
 
     end
 
     properties
 
+        p_sl = 101325; % Sea level atmospheric pressure (Pa)
         nozzle_diameter;
         length;
         total_mass;
@@ -19,64 +20,39 @@ classdef Motor < RocketPart
 
     methods
         
-        function obj = Motor(name, total_mass, propellant_mass, nozzle_diameter, length, thrust_curve)
-            %MOTOR Construct an instance of this class
+        function obj = Motor(name, total_mass, propellant_mass, nozzle_diameter, length, thrust_curve, parent_part)
+            % Constructs an instance of the Motor class.
             %
             % Inputs:
-            %   name - Name of the motor (string)
-            %   total_mass - Total mass of the motor (kg)
-            %   propellant_mass - Mass of the propellant (kg)
-            %   nozzle_diameter - Diameter of the nozzle exit (m)
-            %   length - Length of the motor (m)
-            %   thrust_curve - Nx2 array: [time (s), thrust (N)]
+            %   name - Name of the motor (string).
+            %   total_mass - Initial total mass of the motor (casing + propellant) (kg).
+            %   propellant_mass - Mass of the propellant (kg).
+            %   nozzle_diameter - Diameter of the nozzle exit (m).
+            %   length - Length of the motor (m).
+            %   thrust_curve - Nx2 array with time (s) and thrust at sea level (N).
+            %   parent_part - The RocketPart this component is attached to.
 
-            obj.name = name;
+            obj@SubRocketPart(name, total_mass, parent_part);
+            
             obj.total_mass = total_mass;
             obj.propellant_mass = propellant_mass;
             obj.nozzle_diameter = nozzle_diameter;
             obj.length = length;
             obj.thrust_curve = thrust_curve;
 
-            obj.exit_area = pi * (nozzle_diameter / 2)^2;
+            obj.exit_area = pi * (obj.nozzle_diameter / 2)^2;
 
-        end
-
-        function cg = compute_cg(obj)
-            %COMPUTE_CG Get the center of gravity of the motor
-            %
-            % Outputs:
-            %   cg - Center of gravity [x, y, z] in meters
-
-            cg = [0, 0, obj.length / 2]; % Assuming uniform density along length
-
-        end
-
-        function I = compute_inertia(obj)
-            %COMPUTE_INERTIA Get the inertia tensor of the motor
-            %
-            % Outputs:
-            %   I - Inertia tensor as a 3x3 matrix
-
-            r = obj.nozzle_diameter / 2; % Approximate radius
-            l = obj.length;
-            m = obj.total_mass;
-
-            Ixx = (1/4) * m * r^2 + (1/12) * m * l^2;
-            Iyy = Ixx;
-            Izz = 0.5 * m * r^2;
-
-            I = diag([Ixx, Iyy, Izz]);
         end
 
         function thrust = get_thrust_at_time(obj, time, p_atm)
-            %GET_THRUST_AT_TIME Get the thrust at a specific time
+            % Gets the thrust at a specific time, adjusted for atmospheric pressure.
             %
             % Inputs:
-            %   time - Time in seconds
-            %   p_atm - Atmospheric pressure in Pascals (not used in this simple model)
+            %   time - Time since ignition (s).
+            %   p_atm - Ambient atmospheric pressure (Pa).
             %
             % Outputs:
-            %   thrust - Thrust in Newtons
+            %   thrust - Thrust in Newtons (N).
 
             if time < 0 || time > obj.thrust_curve(end, 1)
                 thrust = 0;
@@ -86,6 +62,27 @@ classdef Motor < RocketPart
             thrust_sl = interp1(obj.thrust_curve(:, 1), obj.thrust_curve(:, 2), time, 'linear', 0);
 
             thrust = thrust_sl + obj.exit_area * (obj.p_sl - p_atm);
+
+        end
+
+        function mass = get_mass_at_time(obj, time)
+
+            mass = 0;
+            % TODO: Implement class equations assuming that the propellant is BATES
+
+        end
+
+        function cg = get_cg_at_time(obj, time)
+
+            cg = 0;
+            % TODO: Implement class equations assuming that the propellant is BATES
+
+        end
+
+        function I = get_inertia_at_time(obj, time)
+
+            I = 0;
+            % TODO: Implement class equations assuming that the propellant is BATES
 
         end
 

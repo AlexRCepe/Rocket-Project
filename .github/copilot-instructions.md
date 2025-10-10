@@ -82,3 +82,4 @@ end
 ```
 - For classes, include a brief description of the class purpose and its main properties and methods in the class definition file.
 - If a function or method is modified, update its docstring to reflect any changes in behavior, inputs, or outputs.
+- Do not add the function name at the beginning of the docstring.

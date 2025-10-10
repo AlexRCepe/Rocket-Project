@@ -1,4 +1,5 @@
-classdef FinSet < RocketPart
+classdef FinSet < SubRocketPart
+    % Represents a set of fins attached to the rocket.
 
     properties
 
@@ -9,29 +10,27 @@ classdef FinSet < RocketPart
         sweep;
         thickness;
         mass_per_fin;
-        parent_cylinder;
     end
 
     methods
 
-        function obj = FinSet(name, num_fins, span, root_chord, tip_chord, sweep, thickness, mass_per_fin, parent_cylinder)
-            %FINSET Construct an instance of this class
+        function obj = FinSet(name, num_fins, span, root_chord, tip_chord, sweep, thickness, mass_per_fin, parent_part)
+            % Constructs an instance of the FinSet class.
             %
             % Inputs:
-            %   name - Name of the fin set (string)
-            %   num_fins - Number of fins (integer)
-            %   span - Span of the fins (m)
-            %   root_chord - Root chord length (m)
-            %   tip_chord - Tip chord length (m)
-            %   sweep - Sweep length (m)
-            %   thickness - Thickness of the fins (m)
-            %   mass_per_fin - Mass of a single fin (kg)
-            %   parent_cylinder - Reference to the parent rocket cylinder
-            %
-            % Sets density property based on geometry and mass.
+            %   name - Name of the fin set (string).
+            %   num_fins - Number of fins in the set (integer).
+            %   span - Span of a single fin (m).
+            %   root_chord - Length of the fin chord at the root (m).
+            %   tip_chord - Length of the fin chord at the tip (m).
+            %   sweep - Sweep distance of the fin's leading edge (m).
+            %   thickness - Thickness of the fins (m).
+            %   mass_per_fin - Mass of a single fin (kg).
+            %   parent_part - The RocketPart this component is attached to.
 
             total_mass = mass_per_fin * num_fins;
-            obj@RocketPart(name, total_mass);
+            
+            obj@SubRocketPart(name, total_mass, parent_part);
 
             obj.num_fins = num_fins;
             obj.span = span;
@@ -40,7 +39,6 @@ classdef FinSet < RocketPart
             obj.sweep = sweep;
             obj.thickness = thickness;
             obj.mass_per_fin = mass_per_fin;
-            obj.parent_cylinder = parent_cylinder;
 
             obj.mass = obj.num_fins * mass_per_fin;
 
@@ -73,7 +71,7 @@ classdef FinSet < RocketPart
             % Outputs:
             %   I - Inertia tensor as a 3x3 matrix
 
-            d = obj.parent_cylinder.diameter / 2 + obj.get_fin_centroid();
+            d = obj.parent_part.diameter / 2 + obj.get_fin_centroid();
             cg = obj.compute_cg();
             z_cg = cg(3);
             
