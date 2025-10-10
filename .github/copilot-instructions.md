@@ -2,12 +2,6 @@
 
 Help AI coding agents be immediately productive in this repository. This project contains two small MATLAB/Octave scripts for rocket-related simulations: trajectory and grain modeling. Both main entry points live at the paths below and are currently empty placeholders.
 
-## Repo snapshot (important files)
-
-- `Trajectory code/main.m` — trajectory simulation entry script (MATLAB .m)
-- `Grain Code/main.m` — grain geometry/propellant model entry script (MATLAB .m)
-- `README.md` — project README (currently a minimal placeholder)
-
 ## Big picture and architecture
 
 This is a very small, script-based MATLAB project (no packages or build system). Expect code to be organized as:
@@ -56,7 +50,8 @@ Adjust paths to the repository root when invoking from another working directory
 
 ## PR and commit guidance
 
-- Keep changes small and focused (one feature or fix per PR). Include a short test/demo script and update `README.md` when behavior changes.
+- Keep changes small and focused (one feature or fix per PR).
+- Do not add extensive comments. Make comments concise and relevant to the code's purpose.
 
 ## Notes and limitations
 
@@ -65,3 +60,25 @@ Adjust paths to the repository root when invoking from another working directory
 
 ---
 If anything here is unclear or you want more project background (sample inputs, target outputs, or preferred numerical methods), tell me which part to expand and I will update this file.
+
+## Functions and classes documentation
+
+- Whenever you are asked to create a new funcion or class, include a brief docstring at the top explaining its purpose, inputs, outputs, and any side effects. The docstring should be concise and informative. The format should be the following:
+
+```
+function [output1, output2] = functionName(input1, input2)
+% Description of the function
+%
+% Inputs:
+%   input1 - Description of input1
+%   input2 - Description of input2
+%
+% Outputs:
+%   output1 - Description of output1
+%   output2 - Description of output2
+%
+
+end
+```
+- For classes, include a brief description of the class purpose and its main properties and methods in the class definition file.
+- If a function or method is modified, update its docstring to reflect any changes in behavior, inputs, or outputs.
