@@ -1,0 +1,3 @@
+classdef AeroModel
+
+end
