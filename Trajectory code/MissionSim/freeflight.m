@@ -28,7 +28,7 @@ function dstate_dt = freeflight(t, state, rocket)
 
     % Unpack state vector
     r_vec = state(1:3);        % Position (x, y, z)
-    v_vec = state(4:6);        % Velocity (vx, vy, vz)
+    vel_inertial = state(4:6);        % Velocity (vx, vy, vz)
     q = state(7:10);           % Quaternion (q0, q1, q2, q3)
     omega_body = state(11:13); % Angular velocity (p, q ,r)
 
@@ -41,7 +41,7 @@ function dstate_dt = freeflight(t, state, rocket)
     %% Intermediate variables
 
     C_i2b = quat2dcm(q'); % Rotation Matrix for inertial to body
-    vel_body = C_i2b * v_vec;
+    vel_body = C_i2b * vel_inertial;
 
     % Calculate angle of attack (alpha) and sideslip angle (beta)
     % Note: Assumes no wind. For wind, use v_aero = vel_body - v_wind_body
@@ -79,7 +79,7 @@ function dstate_dt = freeflight(t, state, rocket)
     C_b2i = C_i2b'; % From body to inertial
     F_total_inertial = C_b2i * F_total_body;
 
-    pos_dot = v_vec;
+    pos_dot = vel_inertial;
     v_dot = (F_total_inertial + F_g) / mass;
 
     omega_cross_I_omega = cross(omega_body, I * omega_body);

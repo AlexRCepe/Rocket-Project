@@ -21,14 +21,14 @@ function dstate_dt = rail(t, state, rocket, rail_direction)
 
     % Unpack state vector
     r_vec = state(1:3);        % Position (x, y, z)
-    v_vec = state(4:6);        % Velocity (vx, vy, vz)
+    v_inertial = state(4:6);        % Velocity (vx, vy, vz)
     q = state(7:10);           % Quaternion (q0, q1, q2, q3)
     omega_body = state(11:13); % Angular velocity (p, q ,r)
 
     %% Intermediate variables
 
     C_i2b = quat2dcm(q'); % Rotation Matrix for inertial to body
-    vel_body = C_i2b * v_vec;
+    vel_body = C_i2b * v_inertial;
 
     % Angle of attack (alpha) and sideslip (beta)
     if norm(vel_body) < 1e-6
@@ -71,9 +71,9 @@ function dstate_dt = rail(t, state, rocket, rail_direction)
     v_dot = accel_mag * d_hat;
 
     % Rotational motion constrained by the rail
-    ang_accel_body = [0; 0; 0];
+    omega_dot = [0; 0; 0];
     q_dot = [0; 0; 0; 0];      
 
-    dstate_dt = [pos_dot; v_dot; q_dot; ang_accel_body];
+    dstate_dt = [pos_dot; v_dot; q_dot; omega_dot];
 
 end

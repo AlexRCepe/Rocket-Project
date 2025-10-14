@@ -83,3 +83,11 @@ end
 - For classes, include a brief description of the class purpose and its main properties and methods in the class definition file.
 - If a function or method is modified, update its docstring to reflect any changes in behavior, inputs, or outputs.
 - Do not add the function name at the beginning of the docstring.
+
+## Code Reviews
+
+Whenever you are told to review some code, you must follow the same steps:
+
+1. Check for possible errors that might due to not calling functions properly or inconsitency in the project syntax.
+
+2. Check the comments making sure that they follow the guidelines given in the "Functions and classes documentation" section. 
