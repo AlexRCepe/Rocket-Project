@@ -3,12 +3,28 @@ classdef Rocket
     % This class manages the collection of rocket parts and calculates
     % the rocket's overall mass, center of gravity (CG), and inertia at any given time.
 
+    properties (Access = private)
+        OVERWRITTEN_LENGTH = false;
+    end
+
     properties
         rocketName;
-        parts = {}; % Use a cell array to store parts of different classes
+        parts = {};
+        length;
     end
 
     methods
+
+        function obj = Rocket(name, length)
+            % Constructor for the Rocket class.
+            obj.rocketName = name;
+
+            if length > 0
+                obj.OVERWRITTEN_LENGTH = true;
+                obj.length = length;
+            end
+            
+        end
 
         function obj = add_part(obj, part)
             % Adds a RocketPart to the rocket.
@@ -25,7 +41,9 @@ classdef Rocket
                 
                 part.position = [0, 0, last_part.position(3) + last_part.length];
                 obj.parts{end} = part; 
-                
+
+                obj = obj.update_length(part);
+
             end
         end
 
@@ -88,6 +106,17 @@ classdef Rocket
 
         end
 
+        function obj = update_length(obj, new_part)
+            
+            if obj.OVERWRITTEN_LENGTH
+                return;
+            end
+
+            obj.length = obj.length + new_part.length;
+
+        end
+
+
         function I = get_inertia(obj, time)
 
             % Calculates the moment of inertia of the rocket at a given time.
@@ -125,6 +154,26 @@ classdef Rocket
                 I = I + part_I + part_mass * (d_sq * eye(3) - d_vec' * d_vec);
 
 
+            end
+        end
+
+        function F = get_thrust(obj, time)
+            % Returns the total thrust produced by all motors at a given time.
+            %
+            % Inputs:
+            %   time - Time in seconds (s).
+            %
+            % Outputs:
+            %   F - Total thrust force vector (N) in the rocket's body frame.
+
+            F = [0; 0; 0]; % Initialize thrust vector
+
+            for i = 1:length(obj.parts)
+                part = obj.parts{i}; % Access part from cell array
+                if isa(part, "Motor")
+                    thrust_mag = part.get_thrust_at_time(time);
+                    F = F + [0; 0; thrust_mag]; % Assuming thrust along the z-axis
+                end
             end
         end
     end
