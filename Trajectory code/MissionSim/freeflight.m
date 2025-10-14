@@ -38,9 +38,9 @@ function dstate_dt = freeflight(t, state, rocket)
     q_rate = omega_body(2);
     r = omega_body(3);
 
-    %% --- 3. Calculate Intermediate Variables ---
+    %% Intermediate variables
 
-    C_i2b = quat2dcm(quat'); % Rotation Matrix for inertial to body
+    C_i2b = quat2dcm(q'); % Rotation Matrix for inertial to body
     vel_body = C_i2b * v_vec;
 
     % Calculate angle of attack (alpha) and sideslip angle (beta)
@@ -57,7 +57,7 @@ function dstate_dt = freeflight(t, state, rocket)
     % Dynamic pressure
     q_dyn = 0.5 * rho_SL * norm(v_aero_body)^2;
 
-    %% Forces and Moments -> Body RF
+    %% Forces and Moments (Body RF)
 
     % Aerodynamic forces
     F_axial = -q_dyn * ref_area * Ca;         % Along -x body axis

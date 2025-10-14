@@ -116,7 +116,6 @@ classdef Rocket
 
         end
 
-
         function I = get_inertia(obj, time)
 
             % Calculates the moment of inertia of the rocket at a given time.
