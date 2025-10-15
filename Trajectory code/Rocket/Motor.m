@@ -58,6 +58,10 @@ classdef Motor < SubRocketPart
                 thrust = 0;
                 return;
             end
+
+            if nargin < 3 %! CHANGE ONCE THE ATMOSPHERE MODEL IS IMPLEMENTED
+                p_atm = 101325; % Default to sea level pressure if not provided
+            end
             
             thrust_sl = interp1(obj.thrust_curve(:, 1), obj.thrust_curve(:, 2), time, 'linear', 0);
 

@@ -1,4 +1,4 @@
-function dstate_dt = recovery(t, state, rocket, Cd_p, Ap, wind_inertial)
+function dstate_dt = recovery(t, state, rocket, Cd_p, Ap, wind_model)
 
     %% Extract Rocket and State parameters
 
@@ -10,6 +10,7 @@ function dstate_dt = recovery(t, state, rocket, Cd_p, Ap, wind_inertial)
     F_g = [0; 0; -mass * g];
 
     % Unpack state vector
+    pos_inertial = state(1:3);
     vel_inertial = state(4:6);      % Velocity (vx, vy, vz) in inertial frame
     q = state(7:10);                % Quaternion (q0, q1, q2, q3)
     omega_body = state(11:13);      % Angular velocity (p, q, r) in body frame
@@ -20,7 +21,9 @@ function dstate_dt = recovery(t, state, rocket, Cd_p, Ap, wind_inertial)
 
     %% --- 2. Calculate Forces in Inertial Frame ---
 
-    vel_relative = vel_inertial - wind_inertial;
+    [vx_wind, vy_wind] = wind_model.wind_at_h(pos_inertial(3));
+
+    vel_relative = vel_inertial - [vx_wind; vy_wind; 0];
 
     vel_rel_mag = norm(vel_relative);
     F_drag_inertial = -0.5 * rho_SL * Cd_p * Ap * vel_rel_mag * vel_relative;

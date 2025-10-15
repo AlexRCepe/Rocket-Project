@@ -67,7 +67,7 @@ If anything here is unclear or you want more project background (sample inputs, 
 
 ```
 function [output1, output2] = functionName(input1, input2)
-% Description of the function
+% Simple description of the function
 %
 % Inputs:
 %   input1 - Description of input1
@@ -82,7 +82,7 @@ end
 ```
 - For classes, include a brief description of the class purpose and its main properties and methods in the class definition file.
 - If a function or method is modified, update its docstring to reflect any changes in behavior, inputs, or outputs.
-- Do not add the function name at the beginning of the docstring.
+- When writing the description of the function, make a brief description in no more than two sentences. Never put the name of the function at the begining of the description
 
 ## Code Reviews
 
@@ -90,4 +90,14 @@ Whenever you are told to review some code, you must follow the same steps:
 
 1. Check for possible errors that might due to not calling functions properly or inconsitency in the project syntax.
 
-2. Check the comments making sure that they follow the guidelines given in the "Functions and classes documentation" section. 
+2. Check the comments making sure that they follow the guidelines given in the "Functions and classes documentation" section.
+
+## Plotting
+
+Whenever you are about to make a new plot or figure you must follow the following rules:
+
+- Use always the "latex" interpreter for all text: labels, titles, legends, tick labels, etc.
+
+- The font size of the titles is 20 and those of the labels is 15. For any other text let it MATLAB adjust it automatically.
+
+- Use always a linewidth of 2 when plotting.

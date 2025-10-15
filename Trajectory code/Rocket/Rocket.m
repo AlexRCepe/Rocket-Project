@@ -11,6 +11,7 @@ classdef Rocket
         rocketName;
         parts = {};
         length;
+        parachute; % Implementation for a single parachute
     end
 
     methods
@@ -19,9 +20,11 @@ classdef Rocket
             % Constructor for the Rocket class.
             obj.rocketName = name;
 
-            if length > 0
+            if nargin > 1 && length > 0 
                 obj.OVERWRITTEN_LENGTH = true;
                 obj.length = length;
+            else
+                obj.length = 0;
             end
             
         end
@@ -34,6 +37,10 @@ classdef Rocket
 
             % Add the new part to the cell array
             obj.parts{end + 1} = part;
+
+            if isa(part, "Parachute")
+                obj.parachute = part;
+            end
             
             if length(obj.parts) > 1 && ~isa(part, "SubRocketPart")
 

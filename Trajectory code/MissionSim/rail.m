@@ -67,7 +67,7 @@ function dstate_dt = rail(t, state, rocket, rail_direction)
     accel_mag = F_proj / mass;
 
     % Position and velocity derivatives
-    pos_dot = vel_inertial;
+    pos_dot = v_inertial;
     v_dot = accel_mag * d_hat;
 
     % Rotational motion constrained by the rail
