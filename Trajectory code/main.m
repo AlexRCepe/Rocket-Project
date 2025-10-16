@@ -5,31 +5,30 @@ close all
 %% Create a new rocket object
 myRocket = Rocket("Rocket");
 
-noseCone = NoseCone('MyNoseCone', 'ogive', 0.5, 0.1, 1.0, []);
+noseCone = NoseCone('MyNoseCone', 'ogive', 0.28, 0.104, 0.107, []);
 myRocket = myRocket.add_part(noseCone);
 
-bodyTube1 = BodyTube('MainBodyTube', 0.5, 0.1, 1.2, 0.003);
+bodyTube1 = BodyTube('MainBodyTube', 6.104, 0.104, 0.676, 0.002);
 myRocket = myRocket.add_part(bodyTube1);
 
-parachute = Parachute('MainParachute', 1.5, 0.8, 300, 0.1, 0.5, bodyTube1);
-parachute = parachute.update_position([0, 0, 0.1]); % Place it 10cm from the top of the tube
-myRocket = myRocket.add_part(parachute);
+% parachute = Parachute('MainParachute', 1.5, 0.8, 300, 0.1, 0.5, bodyTube1);
+% parachute = parachute.update_position([0, 0, 0.1]); % Place it 10cm from the top of the tube
+% myRocket = myRocket.add_part(parachute);
 
-avionics = Mass('AvionicsBay', 0.4, 0.15, 0.09, bodyTube1);
-avionics = avionics.update_position([0, 0, 0.3]); % Place it 30cm from the top of the tube
-myRocket = myRocket.add_part(avionics);
+% avionics = Mass('AvionicsBay', 0.4, 0.15, 0.09, bodyTube1);
+% avionics = avionics.update_position([0, 0, 0.3]); % Place it 30cm from the top of the tube
+% myRocket = myRocket.add_part(avionics);
 
-motorTube = BodyTube('MotorTube', 0.5, 0.05, 0.7, 0.002);
-myRocket = myRocket.add_part(motorTube);
-
+% motorTube = BodyTube('MotorTube', 0.5, 0.05, 0.7, 0.002);
+% myRocket = myRocket.add_part(motorTube);
 
 thrust_curve = [0.0, 0.0; 0.003, 281.69; 0.05, 1436.62; 0.121, 1363.38; 0.366, 1263.85; 0.59, 1230.05; 1.745, 1322.07; 2.835, 1166.2; 4.0, 974.648; 4.158, 839.437; 4.668, 82.629; 4.736, 0.0];
-motor = Motor('MyMotor', 5.0, 2.8, 0.03, 0.6, thrust_curve, motorTube);
-motor = motor.update_position([0, 0, 0.05]); % Place it 5cm from the top of the motor tube
+motor = Motor('MyMotor', 4.938, 3.096, 0.065, 0.621, thrust_curve, bodyTube1);
+motor = motor.update_position([0, 0, bodyTube1.length - motor.length]); % Place it 5cm from the top of the motor tube
 myRocket = myRocket.add_part(motor);
 
-finSet = FinSet('MyFins', 4, 0.15, 0.2, 0.1, 0.05, 0.004, 0.1, motorTube);
-finSet = finSet.update_position([0, 0, 0.4]); % Attach fins starting 40cm down the motor tube
+finSet = FinSet('MyFins', 4, 0.0865, 0.17, 0.0425, 0.0978, 0.0007, 0.443/4, bodyTube1);
+finSet = finSet.update_position([0, 0, 0.506]); % Attach fins starting 40cm down the motor tube
 myRocket = myRocket.add_part(finSet);
 
 % Debug calculations

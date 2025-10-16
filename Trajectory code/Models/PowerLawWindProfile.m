@@ -57,6 +57,9 @@ classdef PowerLawWindProfile < WindModel
 
             vx = speed_at_h * cos(direction_rad);
             vy = speed_at_h * sin(direction_rad);
+
+            vx = 0; % TODO:
+            vy = 0;
         end
     end
 end
