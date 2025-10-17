@@ -77,7 +77,7 @@ while Ab_checker == 0
 
         Ab_ends = 2 * (A_cylinder - A_port_inst);
 
-        Ab(j) = 12 * z(j) * L(j) + Ab_ends;
+        Ab(j) = 12 * z(j) * L(j);
     % The next area of the code is the second phase of the burn, when the
     % grain splits into 6 different triangles burning down to a point. Like
     % before, this solution zooms into one of the twelce sector arcs that
@@ -99,7 +99,7 @@ while Ab_checker == 0
         Ab_end_faces = 2 * A_propellant_inst;
 
         
-        Ab(j) = 12 * z(j) * L(j) + Ab_end_faces;
+        Ab(j) = 12 * z(j) * L(j);
         % Condition where Ab ~ 0 and the grain burns out
         if Ab(j) <= 0.00001
             Ab_checker = 1;

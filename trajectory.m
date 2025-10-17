@@ -2,55 +2,53 @@ clc
 clear
 close all
 
-addpath('../Grain Code/');
-
 %% ROCKET AND ENVIRONMENTAL PARAMETERS
 
-g = 9.81;        % Gravity                    [m/s^2]
-m0 = 10;         % Initial mass               [kg]
-m_dry = 0.625;   % Dry mass                   [kg]
-A = 0.01081;     % Cross-sectional area       [m^2]
-Cd = 0.75;       % Drag coefficient
-rho0 = 1.225;    % Sea-level air density      [kg/m^3]
-h_scale = 8400;  % Atmospheric scale height   [m]
-v_w = 40;        % Wind speed in +x direction [km/h]
+g = 9.81;            % Gravity                    [m/s^2]
+m_dry = 0.625;       % Dry mass                   [kg]
+m_prop = 0.086;      % Propellant mass            [kg]
+m0 = m_dry + m_prop; % Initial mass               [kg]
+A = 0.01081;         % Cross-sectional area       [m^2]
+Cd = 0.75;           % Drag coefficient
+rho0 = 1.225;        % Sea-level air density      [kg/m^3]
+h_scale = 8400;      % Atmospheric scale height   [m]
+v_w = 40;            % Wind speed in +x direction [km/h]
 
-v_w = v_w / 3.6; % From km/h to m/s
+v_w = v_w / 3.6;     % From km/h to m/s
 
-gamma = 1.2;     % Specific heat ratio (air)
+gamma = 1.2;         % Specific heat ratio (air)
 
-De = 1.5;        % Exit diameter               [in]
-Dt = 0.25;       % Throat diameter             [in]
-c_star = 5088;   % Characteristic velocity     [ft/s]
+De = 1.5;            % Exit diameter               [in]
+Dt = 0.25;           % Throat diameter             [in]
+c_star = 5088;       % Characteristic velocity     [ft/s]
 
 epsilon = De.^2 ./ Dt.^2;
-Me = get_me(epsilon, gamma);
+Me = get_Me(epsilon, gamma);
 
 %% GRAIN PARAMETERS AND THRUST CURVE CALCULATION
 
-r1 = 0.5;        % Internal radius              [in]
+r1 = 0.5;             % Internal radius             [in]
 
 % Thrust history [time (s), thrust (N)]
-thrust_history = get_thrust_curve(r1, Me, epsilon, gamma, "Dt", Dt, "c_star", c_star);
-thrust_fn = @(t) interp1(thrust_history(:,1), thrust_history(:,2), t, 'linear', 0);
+[thrust, mass_flow] = get_curves(r1, Me, epsilon, gamma, "Dt", Dt, "c_star", c_star);
+thrust_fn = @(t) interp1(thrust(:,1), thrust(:,2), t, 'linear', 0);
 
-% Mass Flow Rate (from Isp and thrust)
-ve = Isp * g; % Exhaust velocity (m/s)
-mdot_fn = @(t) thrust_fn(t) / ve; % Mass flow rate (kg/s)
+mdot_fn = @(t) interp1(mass_flow(:,1), mass_flow(:,2), t, 'linear', 0);
 
 % TODO : Change to ISA
 % Air Density Model 
 rho = @(z) rho0 * exp(-z / h_scale); % Exponential atmosphere model (z is altitude)
+
+drag_fn = @(t, z, vz, vx) compute_drag_and_alpha(t, z, vz, vx, v_w, rho, A, Cd);
 
 %%  INTEGRATION
 
 % State vector = [x; z; vx; vz; m; v_loss_gravity]
 
 x0 = [0; 0; 0; 0; m0; 0];
-tspan = [0, 1000]; 
-options = odeset('Events', @ground_hit_event); % Event to stop at ground hit
+tspan = [0, 1000];
 
-drag_fn = @(t, z, vz, vx) compute_drag_and_alpha(t, z, vz, vx, v_w, rho, A, Cd);
+options = odeset('Events', @ground_hit_event); % Event to stop at ground hit
 
 [t, x] = ode45(@(t, x) rocket_dynamics(t, x, thrust_fn, mdot_fn, drag_fn, g, m_dry), tspan, x0, options);
 
@@ -95,7 +93,7 @@ fprintf('Total Gravity Loss: %.2f m/s\n', total_gravity_loss);
 fprintf('Downrange Distance at Max Altitude: %.2f meters\n', x(idx,1));
 
 % Plot Results 
-figure(1)
+figure()
 subplot(2,3,1)
 plot(x(:,1), x(:,2))
 xlabel('Downrange Distance (m)')
@@ -138,7 +136,7 @@ ylabel('Gravity Loss (m/s)')
 title('Cumulative Gravity Loss vs Time')
 grid on
 
-figure(2)
+figure()
 plot(t, alpha_deg)
 xlabel('Time (s)')
 ylabel('Angle of Attack (deg)')
@@ -235,4 +233,22 @@ function [value, isterminal, direction] = ground_hit_event(t, x)
     value = x(2);      % Detect when altitude = 0
     isterminal = 1;    % Stop the integration
     direction = -1;    % Trigger only when altitude is decreasing
+end
+
+function Me = get_Me(epsilon, gamma)
+% Calculates the exit Mach number for a given expansion ratio.
+%
+% Inputs:
+%   epsilon - Nozzle expansion ratio (Ae/At)
+%   gamma   - Ratio of specific heats
+%
+% Outputs:
+%   Me      - Mach number at the exit of the nozzle
+    
+    options = optimoptions("fsolve", "Display", "none");
+
+    func = @(M) -epsilon + (1 ./ M) .* ((2 + (gamma - 1) .* M.^2) ./ (gamma + 1)) .^ ((gamma + 1) ./ (2.*(gamma-1)));
+
+    Me = fsolve(func, 2, options);
+
 end

@@ -47,7 +47,7 @@ function thrust_curve = get_thrust_curve(r, Me, epsilon, gamma, options)
     At = pi * options.Dt^2 / 4; % [in^2]
 
     [t, Pc, m_p] = project_grain(r, "Dt", options.Dt, "c_star", options.c_star);
-
+    
     % Pe should be a vector, calculated for each value of Pc
     Pe = Pc ./ (1 + (gamma - 1)./2 .* Me.^2).^(gamma./(gamma-1));
 
@@ -110,8 +110,8 @@ function Isp = get_Isp(r, Me, epsilon, gamma, options)
     end
 
     [~, ~, m_p] = project_grain(r, "Dt", options.Dt, "c_star", options.c_star);
-    
-    thrust_curve = get_thrust_curve(r, Me, epsilon, gamma, "Dt", options.Dt, "c_star", options.c_star);
+
+    [thrust_curve, ~] = get_curves(r, Me, epsilon, gamma, "Dt", options.Dt, "c_star", options.c_star);
     t = thrust_curve(:, 1);
     F_v = thrust_curve(:, 2);
 
