@@ -9,6 +9,7 @@ function xb = project_geosolver(w,D,theta, r1)
 target = D^2 / 4;
 checker = 0;
 size = 100;
+
 while checker == 0
     % Defines possible values that x could be for the iteration to check
     x = linspace(0,0.5,size);

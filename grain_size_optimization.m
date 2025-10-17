@@ -67,12 +67,20 @@ function thrust_curve = get_thrust_curve(r, Me, epsilon, gamma, options)
     
     thrust_curve = [t', F_v'];
 
-    % plot thrust curve
+    % Plot thrust curve
     figure()
     plot(t, F_v)
     title('Thrust vs. Time')
     xlabel('Time (s)')
     ylabel('Thrust (lbf)')
+    grid on;
+
+    % Plot chamber pressure curve
+    figure()
+    plot(t, Pc)
+    title('Chamber Pressure vs. Time')
+    xlabel('Time (s)')
+    ylabel('Chamber Pressure (psi)')
     grid on;
 end
 

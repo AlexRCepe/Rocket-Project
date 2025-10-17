@@ -7,10 +7,9 @@ addpath('../Grain Code/');
 %% ROCKET AND ENVIRONMENTAL PARAMETERS
 
 g = 9.81;        % Gravity                    [m/s^2]
-Isp = 200;       % Specific impulse           [s, user-provided]
 m0 = 10;         % Initial mass               [kg]
 m_dry = 0.625;   % Dry mass                   [kg]
-A = 0.01;        % Cross-sectional area       [m^2]
+A = 0.01081;     % Cross-sectional area       [m^2]
 Cd = 0.75;       % Drag coefficient
 rho0 = 1.225;    % Sea-level air density      [kg/m^3]
 h_scale = 8400;  % Atmospheric scale height   [m]
@@ -25,10 +24,11 @@ Dt = 0.25;       % Throat diameter             [in]
 c_star = 5088;   % Characteristic velocity     [ft/s]
 
 epsilon = De.^2 ./ Dt.^2;
+Me = get_me(epsilon, gamma);
+
+%% GRAIN PARAMETERS AND THRUST CURVE CALCULATION
 
 r1 = 0.5;        % Internal radius              [in]
-
-Me = get_me(epsilon, gamma);
 
 % Thrust history [time (s), thrust (N)]
 thrust_history = get_thrust_curve(r1, Me, epsilon, gamma, "Dt", Dt, "c_star", c_star);
