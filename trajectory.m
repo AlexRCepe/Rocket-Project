@@ -6,14 +6,14 @@ close all
 
 g = 9.81;            % Gravity                    [m/s^2]
 m_dry = 0.625;       % Dry mass                   [kg]
-m_prop = 0.086;      % Propellant mass            [kg]
-m0 = m_dry + m_prop; % Initial mass               [kg]
 A = 0.01081;         % Cross-sectional area       [m^2]
-Cd = 0.75;           % Drag coefficient
-v_w = 40;            % Wind speed in +x direction [km/h]
+Cd = 0.6;            % Drag coefficient
+v_w = 50;            % Wind speed in +x direction [km/h]
 De = 1.5;            % Exit diameter               [in]
+launch_angle_deg = 2;% Launch angle from vertical  [deg]
 
 v_w = v_w / 3.6;     % From km/h to m/s
+launch_angle_rad = deg2rad(launch_angle_deg);
 
 Ae = pi * (De * 0.0254 / 2)^2; % Nozzle exit area [m^2]
 
@@ -28,13 +28,15 @@ Me = get_Me(epsilon, gamma);
 
 %% GRAIN PARAMETERS AND THRUST CURVE CALCULATION
 
-r1 = 0.5;             % Internal radius             [in]
+r1 = 0.2;             % Internal radius             [in]
 
 % Thrust history [time (s), thrust (N)]
 [thrust, mass_flow] = get_curves(r1, Me, epsilon, gamma, "Dt", Dt, "c_star", c_star);
 thrust_fn = @(t) interp1(thrust(:,1), thrust(:,2), t, 'linear', 0);
 
 mdot_fn = @(t) interp1(mass_flow(:,1), mass_flow(:,2), t, 'linear', 0);
+m_prop = trapz(mass_flow(:,1), mass_flow(:,2));
+m0 = m_dry + m_prop;
 
 % Air Density and Pressure Model (ISA)
 [rho_fn, pa_fn] = get_isa_props();
@@ -50,7 +52,7 @@ tspan = [0, 1000];
 
 options = odeset('Events', @ground_hit_event); % Event to stop at ground hit
 
-[t, x] = ode45(@(t, x) rocket_dynamics(t, x, thrust_fn, mdot_fn, drag_fn, g, m_dry, pa_fn, Ae), tspan, x0, options);
+[t, x] = ode45(@(t, x) rocket_dynamics(t, x, thrust_fn, mdot_fn, drag_fn, g, m_dry, pa_fn, Ae, launch_angle_rad), tspan, x0, options);
 
 % Extract Maximum Altitude and Gravity Losses
 z = x(:,2); % Altitude trajectory
@@ -100,6 +102,7 @@ xlabel('Downrange Distance (m)', 'Interpreter', 'latex', 'FontSize', 15)
 ylabel('Altitude (m)', 'Interpreter', 'latex', 'FontSize', 15)
 title('Rocket Trajectory', 'Interpreter', 'latex', 'FontSize', 20)
 grid on
+% axis equal
 ax = gca;
 ax.TickLabelInterpreter = 'latex';
 
@@ -204,7 +207,7 @@ function [D, alpha] = compute_drag_and_alpha(t, z, vz, vx, v_w, rho_fn, A, Cd)
 end
 
 % Equations of Motion
-function dxdt = rocket_dynamics(t, x, thrust_fn, mdot_fn, drag_fn, g, m_dry, pa_fn, Ae)
+function dxdt = rocket_dynamics(t, x, thrust_fn, mdot_fn, drag_fn, g, m_dry, pa_fn, Ae, launch_angle_rad)
 
     x_pos = x(1);  % Horizontal position [m]
     z = x(2);      % Altitude [m]
@@ -223,7 +226,7 @@ function dxdt = rocket_dynamics(t, x, thrust_fn, mdot_fn, drag_fn, g, m_dry, pa_
 
     v_mag = sqrt(vz^2 + vx^2); % Rocket velocity magnitude
     if v_mag == 0
-        T = [0; T_mag]; % Thrust vertical at launch
+        T = T_mag * [sin(launch_angle_rad); cos(launch_angle_rad)]; % Thrust at launch angle
     else
         T = T_mag * [vx; vz] / v_mag; % Thrust along velocity vector
     end

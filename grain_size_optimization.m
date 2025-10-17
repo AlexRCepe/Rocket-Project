@@ -12,7 +12,7 @@ c_star = 5088; % [ft/s]
 
 epsilon = De.^2 ./ Dt.^2;
 
-r1 = 0.5; % [in]
+r1 = 0.4; % [in]
 
 Me = get_me(epsilon, gamma);
 Isp = get_Isp(r1, Me, epsilon, gamma, "Dt", Dt, "c_star", c_star);
@@ -116,7 +116,7 @@ function Isp = get_Isp(r, Me, epsilon, gamma, options)
     F_v = thrust_curve(:, 2);
 
     I = trapz(t, F_v);    % [lb*s]
-    Isp = I ./ m_p;
+    Isp = I ./ (m_p .* 9.81);
 
     if options.DisplayForce
 

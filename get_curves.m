@@ -1,16 +1,20 @@
 function [thrust_curve, mass_flow_curve] = get_curves(r, Me, epsilon, gamma, options)
-% Calculates the thrust curve for a solid rocket motor with a star grain.
+% Calculates the thrust and mass flow curves for a solid rocket motor.
 %
 % Inputs:
 %   r                - Initial radius parameter for the star points [in]
 %   Me               - Mach number at the exit of the nozzle
 %   epsilon          - Nozzle expansion ratio (Ae/At)
 %   gamma            - Ratio of specific heats
-%   options.Dt       - Throat diameter [in]
-%   options.c_star   - Characteristic velocity [ft/s]
+% Name-Value pairs:
+%   Dt               - Throat diameter [in]
+%   c_star           - Characteristic velocity [ft/s]
+%   g                - Gravity acceleration [ft/s^2] (default: 32.2)
+%   displayCurves    - Boolean to display plots (default: true)
 %
 % Outputs:
-%   thrust_curve     - A [Nx2] matrix of [time, thrust] data
+%   thrust_curve     - A [Nx2] matrix of [time, thrust] data in [s, N]
+%   mass_flow_curve  - A [Nx2] matrix of [time, mass_flow] data in [s, kg/s]
 
     arguments
         r
@@ -61,27 +65,33 @@ function [thrust_curve, mass_flow_curve] = get_curves(r, Me, epsilon, gamma, opt
         tiledlayout(1,3);
 
         nexttile
-        plot(t, F_v)
-        title('Thrust vs. Time')
-        xlabel('Time (s)')
-        ylabel('Thrust (N)')
+        plot(t, F_v, 'LineWidth', 2)
+        title('Thrust vs. Time', 'Interpreter', 'latex', 'FontSize', 20)
+        xlabel('Time (s)', 'Interpreter', 'latex', 'FontSize', 15)
+        ylabel('Thrust (N)', 'Interpreter', 'latex', 'FontSize', 15)
         grid on;
+        ax = gca;
+        ax.TickLabelInterpreter = 'latex';
 
         % plot mass flow curve
         nexttile
-        plot(t, m_dot)
-        title('Mass Flow Rate vs. Time')
-        xlabel('Time (s)')
-        ylabel('Mass Flow Rate (kg/s)')
+        plot(t, m_dot, 'LineWidth', 2)
+        title('Mass Flow Rate vs. Time', 'Interpreter', 'latex', 'FontSize', 20)
+        xlabel('Time (s)', 'Interpreter', 'latex', 'FontSize', 15)
+        ylabel('Mass Flow Rate (kg/s)', 'Interpreter', 'latex', 'FontSize', 15)
         grid on;
+        ax = gca;
+        ax.TickLabelInterpreter = 'latex';
 
         % plot chamber pressure curve
         nexttile
-        plot(t, Pc)
-        title('Chamber Pressure vs. Time')
-        xlabel('Time (s)')
-        ylabel('Chamber Pressure (psi)')
+        plot(t, Pc, 'LineWidth', 2)
+        title('Chamber Pressure vs. Time', 'Interpreter', 'latex', 'FontSize', 20)
+        xlabel('Time (s)', 'Interpreter', 'latex', 'FontSize', 15)
+        ylabel('Chamber Pressure (psi)', 'Interpreter', 'latex', 'FontSize', 15)
         grid on;
+        ax = gca;
+        ax.TickLabelInterpreter = 'latex';
     end
 
 end
