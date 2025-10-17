@@ -58,7 +58,7 @@ function [thrust_curve, mass_flow_curve] = get_curves(r, Me, epsilon, gamma, opt
 
         % plot thrust curve
         figure()
-        tiledlayout(3,1);
+        tiledlayout(1,3);
 
         nexttile
         plot(t, F_v)

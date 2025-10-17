@@ -10,11 +10,12 @@ m_prop = 0.086;      % Propellant mass            [kg]
 m0 = m_dry + m_prop; % Initial mass               [kg]
 A = 0.01081;         % Cross-sectional area       [m^2]
 Cd = 0.75;           % Drag coefficient
-rho0 = 1.225;        % Sea-level air density      [kg/m^3]
-h_scale = 8400;      % Atmospheric scale height   [m]
 v_w = 40;            % Wind speed in +x direction [km/h]
+De = 1.5;            % Exit diameter               [in]
 
 v_w = v_w / 3.6;     % From km/h to m/s
+
+Ae = pi * (De * 0.0254 / 2)^2; % Nozzle exit area [m^2]
 
 gamma = 1.2;         % Specific heat ratio (air)
 
@@ -35,11 +36,10 @@ thrust_fn = @(t) interp1(thrust(:,1), thrust(:,2), t, 'linear', 0);
 
 mdot_fn = @(t) interp1(mass_flow(:,1), mass_flow(:,2), t, 'linear', 0);
 
-% TODO : Change to ISA
-% Air Density Model 
-rho = @(z) rho0 * exp(-z / h_scale); % Exponential atmosphere model (z is altitude)
+% Air Density and Pressure Model (ISA)
+[rho_fn, pa_fn] = get_isa_props();
 
-drag_fn = @(t, z, vz, vx) compute_drag_and_alpha(t, z, vz, vx, v_w, rho, A, Cd);
+drag_fn = @(t, z, vz, vx) compute_drag_and_alpha(t, z, vz, vx, v_w, rho_fn, A, Cd);
 
 %%  INTEGRATION
 
@@ -50,7 +50,7 @@ tspan = [0, 1000];
 
 options = odeset('Events', @ground_hit_event); % Event to stop at ground hit
 
-[t, x] = ode45(@(t, x) rocket_dynamics(t, x, thrust_fn, mdot_fn, drag_fn, g, m_dry), tspan, x0, options);
+[t, x] = ode45(@(t, x) rocket_dynamics(t, x, thrust_fn, mdot_fn, drag_fn, g, m_dry, pa_fn, Ae), tspan, x0, options);
 
 % Extract Maximum Altitude and Gravity Losses
 z = x(:,2); % Altitude trajectory
@@ -95,58 +95,84 @@ fprintf('Downrange Distance at Max Altitude: %.2f meters\n', x(idx,1));
 % Plot Results 
 figure()
 subplot(2,3,1)
-plot(x(:,1), x(:,2))
-xlabel('Downrange Distance (m)')
-ylabel('Altitude (m)')
-title('Rocket Trajectory')
+plot(x(:,1), x(:,2), 'LineWidth', 2)
+xlabel('Downrange Distance (m)', 'Interpreter', 'latex', 'FontSize', 15)
+ylabel('Altitude (m)', 'Interpreter', 'latex', 'FontSize', 15)
+title('Rocket Trajectory', 'Interpreter', 'latex', 'FontSize', 20)
 grid on
+ax = gca;
+ax.TickLabelInterpreter = 'latex';
 
 subplot(2,3,2)
-plot(t, x(:,2))
-xlabel('Time (s)')
-ylabel('Altitude (m)')
-title('Altitude vs Time')
+plot(t, x(:,2), 'LineWidth', 2)
+xlabel('Time (s)', 'Interpreter', 'latex', 'FontSize', 15)
+ylabel('Altitude (m)', 'Interpreter', 'latex', 'FontSize', 15)
+title('Altitude vs Time', 'Interpreter', 'latex', 'FontSize', 20)
 grid on
+ax = gca;
+ax.TickLabelInterpreter = 'latex';
 
 subplot(2,3,3)
-plot(t, x(:,4))
-xlabel('Time (s)')
-ylabel('Vertical Velocity (m/s)')
-title('Vertical Velocity vs Time')
+plot(t, x(:,4), 'LineWidth', 2)
+xlabel('Time (s)', 'Interpreter', 'latex', 'FontSize', 15)
+ylabel('Vertical Velocity (m/s)', 'Interpreter', 'latex', 'FontSize', 15)
+title('Vertical Velocity vs Time', 'Interpreter', 'latex', 'FontSize', 20)
 grid on
+ax = gca;
+ax.TickLabelInterpreter = 'latex';
 
 subplot(2,3,4)
-plot(t, x(:,3))
-xlabel('Time (s)')
-ylabel('Horizontal Velocity (m/s)')
-title('Horizontal Velocity vs Time')
+plot(t, x(:,3), 'LineWidth', 2)
+xlabel('Time (s)', 'Interpreter', 'latex', 'FontSize', 15)
+ylabel('Horizontal Velocity (m/s)', 'Interpreter', 'latex', 'FontSize', 15)
+title('Horizontal Velocity vs Time', 'Interpreter', 'latex', 'FontSize', 20)
 grid on
+ax = gca;
+ax.TickLabelInterpreter = 'latex';
 
 subplot(2,3,5)
-plot(t, x(:,5))
-xlabel('Time (s)') 
-ylabel('Mass (kg)')
-title('Mass vs Time')
+plot(t, x(:,5), 'LineWidth', 2)
+xlabel('Time (s)', 'Interpreter', 'latex', 'FontSize', 15) 
+ylabel('Mass (kg)', 'Interpreter', 'latex', 'FontSize', 15)
+title('Mass vs Time', 'Interpreter', 'latex', 'FontSize', 20)
 grid on
+ax = gca;
+ax.TickLabelInterpreter = 'latex';
 
 subplot(2,3,6)
-plot(t, v_loss)
-xlabel('Time (s)')
-ylabel('Gravity Loss (m/s)')
-title('Cumulative Gravity Loss vs Time')
+plot(t, v_loss, 'LineWidth', 2)
+xlabel('Time (s)', 'Interpreter', 'latex', 'FontSize', 15)
+ylabel('Gravity Loss (m/s)', 'Interpreter', 'latex', 'FontSize', 15)
+title('Cumulative Gravity Loss vs Time', 'Interpreter', 'latex', 'FontSize', 20)
 grid on
+ax = gca;
+ax.TickLabelInterpreter = 'latex';
 
 figure()
-plot(t, alpha_deg)
-xlabel('Time (s)')
-ylabel('Angle of Attack (deg)')
-title('Angle of Attack vs Time')
+plot(t, alpha_deg, 'LineWidth', 2)
+xlabel('Time (s)', 'Interpreter', 'latex', 'FontSize', 15)
+ylabel('Angle of Attack (deg)', 'Interpreter', 'latex', 'FontSize', 15)
+title('Angle of Attack vs Time', 'Interpreter', 'latex', 'FontSize', 20)
 grid on
+ax = gca;
+ax.TickLabelInterpreter = 'latex';
 
 %% FUNCTION DEFINITIONS
 
+% ISA Properties Wrapper
+function [rho_fn, p_fn] = get_isa_props()
+    % Returns function handles for atmospheric density and pressure.
+    % It handles negative altitudes by clamping them to zero.
+    function [rho, p] = isa_props_at_alt(altitude)
+        altitude(altitude < 0) = 0;
+        [~, ~, p, rho] = atmosisa(altitude);
+    end
+    rho_fn = @(z) isa_props_at_alt(z);
+    p_fn = @(z) isa_props_at_alt(z);
+end
+
 %  Wind Effect and Drag Function
-function [D, alpha] = compute_drag_and_alpha(t, z, vz, vx, v_w, rho, A, Cd)
+function [D, alpha] = compute_drag_and_alpha(t, z, vz, vx, v_w, rho_fn, A, Cd)
     % Compute relative velocity and angle of attack
 
     v_r = [vx - v_w; vz]; % Relative velocity vector (rocket velocity - wind)
@@ -168,7 +194,8 @@ function [D, alpha] = compute_drag_and_alpha(t, z, vz, vx, v_w, rho, A, Cd)
         alpha = acos(dot_product / (v_rocket_mag * v_rel_mag));
     end
     
-    D_mag = 0.5 * rho(z) * v_rel_mag^2 * A * Cd; % Drag magnitude
+    rho = rho_fn(z);
+    D_mag = 0.5 * rho * v_rel_mag^2 * A * Cd; % Drag magnitude
     if v_rel_mag == 0
         D = [0; 0]; % No drag if no relative velocity
     else
@@ -177,7 +204,7 @@ function [D, alpha] = compute_drag_and_alpha(t, z, vz, vx, v_w, rho, A, Cd)
 end
 
 % Equations of Motion
-function dxdt = rocket_dynamics(t, x, thrust_fn, mdot_fn, drag_fn, g, m_dry)
+function dxdt = rocket_dynamics(t, x, thrust_fn, mdot_fn, drag_fn, g, m_dry, pa_fn, Ae)
 
     x_pos = x(1);  % Horizontal position [m]
     z = x(2);      % Altitude [m]
@@ -187,7 +214,13 @@ function dxdt = rocket_dynamics(t, x, thrust_fn, mdot_fn, drag_fn, g, m_dry)
     v_loss = x(6); % Cumulative gravity loss [m/s]
     
     % Thrust
-    T_mag = thrust_fn(t);
+    T_vac = thrust_fn(t);
+    Pa = pa_fn(z);
+    T_mag = T_vac - Pa * Ae;
+    if T_mag < 0
+        T_mag = 0;
+    end
+
     v_mag = sqrt(vz^2 + vx^2); % Rocket velocity magnitude
     if v_mag == 0
         T = [0; T_mag]; % Thrust vertical at launch
@@ -233,6 +266,7 @@ function [value, isterminal, direction] = ground_hit_event(t, x)
     value = x(2);      % Detect when altitude = 0
     isterminal = 1;    % Stop the integration
     direction = -1;    % Trigger only when altitude is decreasing
+    
 end
 
 function Me = get_Me(epsilon, gamma)
