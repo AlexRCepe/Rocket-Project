@@ -1,8 +1,7 @@
-function [t, Pc, m_p] = project_grain(r1, options)
+function [t, Pc] = project_grain(r1, options)
 % AUTHOR: CHARLIE OLSON
 % This function tracks the propagation of the grain in a 6-sided star bore
 % geometry, and provides a Chamber Pressure History.
-
 arguments
     r1
     options.Dt
@@ -11,6 +10,8 @@ end
 
 % Rocket Dimensions of tube, throat, and exit
 D = 1.212;  % [in]
+Dt = 0.25;  % [in]
+De = 1.5;  % [in]
 z(1) = 4.6;  % [in]
 % Defines second initial geometric conditions of 6-pointed star geometry
 theta = 30;  % [deg]
@@ -18,33 +19,28 @@ theta = 30;  % [deg]
 rho_p = 0.06068;  % [lb/in^3]
 a = 0.0318;  % [in/(s*Psi^n)]
 n = 0.28;  % [unitless]
-At = pi * options.Dt^2/4;  % [in^2]
+At = pi * Dt^2/4;  % [in^2]
 g = 32.174 * 12;  % [in/s^2]
-c_star = options.c_star * 12;  % [in/s]
-
-% Calculate initial propellant mass
-A_cylinder = pi * (D/2)^2;
-% The port area is 6 triangles with base 2*(r1/2 * tand(theta)) and height r1/2, plus a central hexagon.
-% A simpler way is to calculate the area of the 12 right triangles forming the star.
-A_port = 12 * (0.5 * (r1/2) * (r1/2 * tand(theta)));
-V_p = (A_cylinder - A_port) * z(1);
-m_p = V_p * rho_p;
+c_star = 5088 * 12;  % [in/s]
 
 % t=0 Grain conditions:
 % Length of a star face initially. The star points are a distance r1 from
 % the centerline, while the star corners are a distance r1/2. The length 
 % of a star face is the hypotenuse of this triangle.
 L(1) = r1/2 / cosd(theta);  % [in]
-% Initial Burn area. A = L(w) * z(w). The code divides the grain into 12
+% Initial Burn area. Side area is A = L(w) * z(w). The code divides the grain into 12
 % identical arcs, so this calculates the burn area of one face and then
-% multiplies by a factor of 12.
-Ab(1) = 12 * z(1) * L(1);  % [in^2]
+% multiplies by a factor of 12. The top area is determined by dividing the
+% star into 12 equal triangles, and subtracting their areas from the
+% casing circle.
+Ab_top(1) = pi * D^2 / 2 - 12 * r1 * L(1) * sind(theta);
+Ab(1) = 12 * z(1) * L(1) + Ab_top(1);  % [in^2]
 Pc(1) = (a * rho_p * Ab(1) * c_star / (g * At))^(1/(1-n));
 % Calculates initial burning rate and sets up the time iteration
 rb(1) = a * Pc(1)^n;
 w(1) = 0;
 t = 0;
-tstep = 0.001;
+tstep = 0.0001;
 % Defines the limiting web distance of the first phase of the burn, the
 % web distance where the points of the stars contact the outer casing.
 w_lim = D / 4 - r1 / 2;
@@ -71,19 +67,13 @@ while Ab_checker == 0
         % our assumptions of sharp corners.
         L(j) = (r1 / 2 + w(j)) / cosd(theta);
         z(j) = z(1) - 2 * w(j);
-
-        A_port_inst = 12 * (0.5 * (r1/2 + w(j)) * ((r1/2 + w(j)) * tand(theta)));
-        A_cylinder = pi * (D/2)^2;
-
-        Ab_ends = 2 * (A_cylinder - A_port_inst);
-
-        Ab(j) = 12 * z(j) * L(j);
+        Ab_top(j) = pi * D^2 / 2 - 12 * (r1+2*w(j)) * L(j) * sind(theta);
+        Ab(j) = 12 * z(j) * L(j) + Ab_top(j);
     % The next area of the code is the second phase of the burn, when the
     % grain splits into 6 different triangles burning down to a point. Like
     % before, this solution zooms into one of the twelce sector arcs that
     % is representative of the problem.
     else
-
         j = j + 1;
         t(j) = t(j-1) + tstep;
         w(j) = w(j-1) + tstep * rb(j-1);
@@ -92,14 +82,12 @@ while Ab_checker == 0
         % chunk and where the grain intersects the circle casing.
         xb(j) = project_geosolver(w(j),D,theta,r1);
         % Solves for the length of the chunk face.
-
         L(j) = xb(j) / cosd(theta);
-        
-        A_propellant_inst = 12 * (0.5 * (L(j) * sind(theta)) * (L(j) * cosd(theta)));
-        Ab_end_faces = 2 * A_propellant_inst;
-
-        
-        Ab(j) = 12 * z(j) * L(j);
+        Ab_triangle(j) = xb(j) * L(j) * sind(theta) / 2;
+        beta(j) = asind(xb(j) / (D/2));
+        Ab_arc(j) = 0.25 * (pi * D^2 * beta(j)/360 - xb(j) * D * cosd(beta(j)));
+        Ab_top(j) = 24 * (Ab_triangle(j) + Ab_arc(j));
+        Ab(j) = 12 * z(j) * L(j) + Ab_top(j);
         % Condition where Ab ~ 0 and the grain burns out
         if Ab(j) <= 0.00001
             Ab_checker = 1;
@@ -108,12 +96,4 @@ while Ab_checker == 0
         end
     end
 end
-
-mdot = rho_p .* Ab .* rb; % [lb/s]
-
-m_p_integrated = cumtrapz(t, mdot); % [lb]
-
-fprintf("Total propellant mass from integration: %.2f lb\n", m_p_integrated(end));
-fprintf("Total propellant mass from geometry: %.2f lb\n", m_p);
-
 end

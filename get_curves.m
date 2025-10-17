@@ -29,7 +29,7 @@ function [thrust_curve, mass_flow_curve] = get_curves(r, Me, epsilon, gamma, opt
 
     At = pi * options.Dt^2 / 4; % [in^2]
 
-    [t, Pc, ~] = project_grain(r, "Dt", options.Dt, "c_star", options.c_star);
+    [t, Pc] = project_grain(r, "Dt", options.Dt, "c_star", options.c_star);
 
     if max(Pc) > 800
         warning('Maximum chamber pressure (Pc = %.2f psi) exceeds the 800 psi limit.', max(Pc));

@@ -5,10 +5,11 @@ close all
 %% ROCKET AND ENVIRONMENTAL PARAMETERS
 
 g = 9.81;            % Gravity                    [m/s^2]
-m_dry = 0.625;       % Dry mass                   [kg]
+m_kit = 0.625;       % Dry mass                   [kg]
+m_in = 0.226796;     % Inert mass of the motor    [kg]
 A = 0.01081;         % Cross-sectional area       [m^2]
-Cd = 0.6;            % Drag coefficient
-v_w = 50;            % Wind speed in +x direction [km/h]
+Cd = 0.63;           % Drag coefficient
+v_w = 15.9;          % Wind speed in +x direction [km/h]
 De = 1.5;            % Exit diameter               [in]
 launch_angle_deg = 2;% Launch angle from vertical  [deg]
 
@@ -28,7 +29,7 @@ Me = get_Me(epsilon, gamma);
 
 %% GRAIN PARAMETERS AND THRUST CURVE CALCULATION
 
-r1 = 0.31;             % Internal radius             [in]
+r1 = 0.30;             % Internal radius             [in]
 
 % Thrust history [time (s), thrust (N)]
 [thrust, mass_flow] = get_curves(r1, Me, epsilon, gamma, "Dt", Dt, "c_star", c_star);
@@ -36,7 +37,9 @@ thrust_fn = @(t) interp1(thrust(:,1), thrust(:,2), t, 'linear', 0);
 
 mdot_fn = @(t) interp1(mass_flow(:,1), mass_flow(:,2), t, 'linear', 0);
 m_prop = trapz(mass_flow(:,1), mass_flow(:,2));
-m0 = m_dry + m_prop;
+fprintf("Total Propellant Mass: %.2f kg\n", m_prop)
+m0 = m_kit + m_prop + m_in;
+m_dry = m_kit + m_in;
 
 % Air Density and Pressure Model (ISA)
 [rho_fn, pa_fn] = get_isa_props();
@@ -91,6 +94,7 @@ alpha_deg = rad2deg(alpha); % Convert to degrees for plotting
 
 %  Output Results 
 fprintf('Maximum Altitude: %.2f meters at t = %.2f seconds\n', max_altitude, max_time);
+fprintf('Maximum Altitude: %.2f ft at t = %.2f seconds\n', max_altitude / 0.3048, max_time);
 fprintf('Total Gravity Loss: %.2f m/s\n', total_gravity_loss);
 fprintf('Downrange Distance at Max Altitude: %.2f meters\n', x(idx,1));
 
