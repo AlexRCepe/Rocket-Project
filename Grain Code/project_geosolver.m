@@ -1,28 +1,35 @@
 function xb = project_geosolver(w,D,theta, r1)
 % Solves the geometric problem of the second stage of 6-pointed star grain
 % propogation.
-%
-% Inputs:
-%   w     - Current web burn distance (in)
-%   D     - Outer diameter of the grain (in)
-%   theta - Half-angle of the star point (deg)
-%   r1    - Initial inner radius of the star point (in)
-%
-% Outputs:
-%   xb    - Distance from the chunk centerline to the casing intersection (in)
 
-    num_points = 10000; % Number of points for numerical solution
-    x = linspace(0, D/2, num_points);
-    
-    % Equation of the line representing the burning grain face
-    y1 = tand(theta) * x + (r1/2 + w);
-    
-    % Equation of the circle representing the outer casing
-    y2 = sqrt((D/2)^2 - x.^2);
-    
-    % Find the intersection
-    [~, idx] = min(abs(y1 - y2));
-    
-    % Return the x-coordinate of the intersection
-    xb = x(idx);
+% The target is a constant value that allows the function to calculate the
+% intersection of the circular casing and the receding grain-line at all
+% time steps, and therefore the length of the grain chunk perpendicular to
+% its centerline.
+target = D^2 / 4;
+checker = 0;
+size = 100;
+while checker == 0
+    % Defines possible values that x could be for the iteration to check
+    x = linspace(0,0.5,size);
+    j = 1;
+    for j = 1:1:length(x)
+        % This is the equation of intersection between the casing and
+        % grain-line equations. 
+        val = x(j)^2 + (-tand(theta)*x(j) - w / sind(2*theta) - r1/(2*cosd(theta)))^2;
+        % If the intersection is true, val will be equal to the target
+        % (within tolerance). 
+        if abs(val - target) <= 0.0001
+            % breaks loop and returns perpendicular grain dimension
+            checker = 1;
+            xb = x(j);
+        end
+    end
+    % If a length has not been found, makes the x-values to be searched
+    % smaller and repeats the loop.
+    if checker == 0
+        size = size * 10;
+    end       
 end
+
+return

@@ -2,27 +2,36 @@ clc
 clear
 close all
 
+addpath('../Grain Code/');
+
 %% ROCKET AND ENVIRONMENTAL PARAMETERS
 
-g = 9.81;       % Gravity                    [m/s^2]
-Isp = 200;      % Specific impulse           [s, user-provided]
-m0 = 10;        % Initial mass               [kg]
-m_dry = 2;      % Dry mass                   [kg]
-A = 0.01;       % Cross-sectional area       [m^2]
-Cd = 0.75;      % Drag coefficient
-rho0 = 1.225;   % Sea-level air density      [kg/m^3]
-h_scale = 8400; % Atmospheric scale height   [m]
-v_w = 40;       % Wind speed in +x direction [km/h]
+g = 9.81;        % Gravity                    [m/s^2]
+Isp = 200;       % Specific impulse           [s, user-provided]
+m0 = 10;         % Initial mass               [kg]
+m_dry = 0.625;   % Dry mass                   [kg]
+A = 0.01;        % Cross-sectional area       [m^2]
+Cd = 0.75;       % Drag coefficient
+rho0 = 1.225;    % Sea-level air density      [kg/m^3]
+h_scale = 8400;  % Atmospheric scale height   [m]
+v_w = 40;        % Wind speed in +x direction [km/h]
 
 v_w = v_w / 3.6; % From km/h to m/s
 
-% Max Thrust is 54 lbf at liftoff
+gamma = 1.2;     % Specific heat ratio (air)
+
+De = 1.5;        % Exit diameter               [in]
+Dt = 0.25;       % Throat diameter             [in]
+c_star = 5088;   % Characteristic velocity     [ft/s]
+
+epsilon = De.^2 ./ Dt.^2;
+
+r1 = 0.5;        % Internal radius              [in]
+
+Me = get_me(epsilon, gamma);
 
 % Thrust history [time (s), thrust (N)]
-thrust_history = [0, 1000; 1, 1000; 2, 800; 3, 600; 4, 400; 5, 200; 6, 0];
-
-% TODO: Change thrust history using pressure ratios
-% Thrust Interpolation Function
+thrust_history = get_thrust_curve(r1, Me, epsilon, gamma, "Dt", Dt, "c_star", c_star);
 thrust_fn = @(t) interp1(thrust_history(:,1), thrust_history(:,2), t, 'linear', 0);
 
 % Mass Flow Rate (from Isp and thrust)
@@ -45,7 +54,7 @@ drag_fn = @(t, z, vz, vx) compute_drag_and_alpha(t, z, vz, vx, v_w, rho, A, Cd);
 
 [t, x] = ode45(@(t, x) rocket_dynamics(t, x, thrust_fn, mdot_fn, drag_fn, g, m_dry), tspan, x0, options);
 
-%  Extract Maximum Altitude and Gravity Losses
+% Extract Maximum Altitude and Gravity Losses
 z = x(:,2); % Altitude trajectory
 [max_altitude, idx] = max(z);
 max_time = t(idx);
