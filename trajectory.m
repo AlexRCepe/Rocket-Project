@@ -28,7 +28,7 @@ Me = get_Me(epsilon, gamma);
 
 %% GRAIN PARAMETERS AND THRUST CURVE CALCULATION
 
-r1 = 0.2;             % Internal radius             [in]
+r1 = 0.31;             % Internal radius             [in]
 
 % Thrust history [time (s), thrust (N)]
 [thrust, mass_flow] = get_curves(r1, Me, epsilon, gamma, "Dt", Dt, "c_star", c_star);
