@@ -10,8 +10,8 @@ m_in = 0.226796;     % Inert mass of the motor    [kg]
 A = 0.01081;         % Cross-sectional area       [m^2]
 Cd = 0.63;           % Drag coefficient
 v_w = 15.9;          % Wind speed in +x direction [km/h]
-De = 1.5;            % Exit diameter               [in]
-launch_angle_deg = 2;% Launch angle from vertical  [deg]
+De = 0.63;           % Exit diameter               [in]
+launch_angle_deg = 0;% Launch angle from vertical  [deg]
 
 v_w = v_w / 3.6;     % From km/h to m/s
 launch_angle_rad = deg2rad(launch_angle_deg);
@@ -20,7 +20,6 @@ Ae = pi * (De * 0.0254 / 2)^2; % Nozzle exit area [m^2]
 
 gamma = 1.2;         % Specific heat ratio (air)
 
-De = 1.5;            % Exit diameter               [in]
 Dt = 0.25;           % Throat diameter             [in]
 c_star = 5088;       % Characteristic velocity     [ft/s]
 
@@ -29,7 +28,7 @@ Me = get_Me(epsilon, gamma);
 
 %% GRAIN PARAMETERS AND THRUST CURVE CALCULATION
 
-r1 = 0.30;             % Internal radius             [in]
+r1 = 0.1;             % Internal radius             [in]
 
 % Thrust history [time (s), thrust (N)]
 [thrust, mass_flow] = get_curves(r1, Me, epsilon, gamma, "Dt", Dt, "c_star", c_star);
@@ -53,7 +52,7 @@ drag_fn = @(t, z, vz, vx) compute_drag_and_alpha(t, z, vz, vx, v_w, rho_fn, A, C
 x0 = [0; 0; 0; 0; m0; 0];
 tspan = [0, 1000];
 
-options = odeset('Events', @ground_hit_event); % Event to stop at ground hit
+options = odeset('Events', @ground_hit_event, 'RelTol', 1e-6, 'AbsTol', 1e-6); % Event to stop at ground hit
 
 [t, x] = ode45(@(t, x) rocket_dynamics(t, x, thrust_fn, mdot_fn, drag_fn, g, m_dry, pa_fn, Ae, launch_angle_rad), tspan, x0, options);
 
@@ -168,19 +167,39 @@ ax.TickLabelInterpreter = 'latex';
 
 % ISA Properties Wrapper
 function [rho_fn, p_fn] = get_isa_props()
-    % Returns function handles for atmospheric density and pressure.
-    % It handles negative altitudes by clamping them to zero.
+% Returns function handles for atmospheric density and pressure from ISA model.
+% The returned functions handle negative altitudes by clamping them to zero.
+%
+% Outputs:
+%   rho_fn - Function handle for density as a function of altitude [kg/m^3]
+%   p_fn   - Function handle for pressure as a function of altitude [Pa]
+
     function [rho, p] = isa_props_at_alt(altitude)
         altitude(altitude < 0) = 0;
         [~, ~, p, rho] = atmosisa(altitude);
     end
+    
     rho_fn = @(z) isa_props_at_alt(z);
     p_fn = @(z) isa_props_at_alt(z);
 end
 
 %  Wind Effect and Drag Function
 function [D, alpha] = compute_drag_and_alpha(t, z, vz, vx, v_w, rho_fn, A, Cd)
-    % Compute relative velocity and angle of attack
+% Computes the drag force vector and angle of attack.
+%
+% Inputs:
+%   t      - Current time [s] (unused)
+%   z      - Altitude [m]
+%   vz     - Vertical velocity [m/s]
+%   vx     - Horizontal velocity [m/s]
+%   v_w    - Wind speed [m/s]
+%   rho_fn - Function handle for atmospheric density
+%   A      - Cross-sectional area [m^2]
+%   Cd     - Drag coefficient
+%
+% Outputs:
+%   D      - Drag force vector [Dx; Dz] [N]
+%   alpha  - Angle of attack [rad]
 
     v_r = [vx - v_w; vz]; % Relative velocity vector (rocket velocity - wind)
     v_rel_mag = norm(v_r);
@@ -212,6 +231,22 @@ end
 
 % Equations of Motion
 function dxdt = rocket_dynamics(t, x, thrust_fn, mdot_fn, drag_fn, g, m_dry, pa_fn, Ae, launch_angle_rad)
+% Defines the system of differential equations for the rocket's trajectory.
+%
+% Inputs:
+%   t                - Current time [s]
+%   x                - State vector [x_pos, z, vx, vz, m, v_loss]
+%   thrust_fn        - Function handle for vacuum thrust vs. time
+%   mdot_fn          - Function handle for mass flow rate vs. time
+%   drag_fn          - Function handle for drag force calculation
+%   g                - Gravitational acceleration [m/s^2]
+%   m_dry            - Dry mass of the rocket [kg]
+%   pa_fn            - Function handle for atmospheric pressure vs. altitude
+%   Ae               - Nozzle exit area [m^2]
+%   launch_angle_rad - Launch angle from vertical [rad]
+%
+% Outputs:
+%   dxdt             - Derivative of the state vector
 
     x_pos = x(1);  % Horizontal position [m]
     z = x(2);      % Altitude [m]
@@ -237,7 +272,7 @@ function dxdt = rocket_dynamics(t, x, thrust_fn, mdot_fn, drag_fn, g, m_dry, pa_
     
     % Drag and angle of attack
     [D, ~] = drag_fn(t, z, vz, vx);
-    
+
     % Mass flow rate
     mdot = mdot_fn(t);
     
@@ -277,7 +312,8 @@ function [value, isterminal, direction] = ground_hit_event(t, x)
 end
 
 function Me = get_Me(epsilon, gamma)
-% Calculates the exit Mach number for a given expansion ratio.
+% Calculates the exit Mach number for a given nozzle expansion ratio.
+% This function solves the isentropic flow relation for Me.
 %
 % Inputs:
 %   epsilon - Nozzle expansion ratio (Ae/At)
