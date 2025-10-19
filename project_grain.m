@@ -10,8 +10,8 @@ end
 
 % Rocket Dimensions of tube, throat, and exit
 D = 1.212;  % [in]
-Dt = 0.25;  % [in]
 De = 0.63;  % [in]
+Dt = options.Dt;
 z(1) = 4.6;  % [in]
 % Defines second initial geometric conditions of 6-pointed star geometry
 theta = 30;  % [deg]

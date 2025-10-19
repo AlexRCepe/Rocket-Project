@@ -41,7 +41,7 @@ m0 = m_kit + m_prop + m_in;
 m_dry = m_kit + m_in;
 
 % Air Density and Pressure Model (ISA)
-[rho_fn, pa_fn] = get_isa_props();
+[rho_fn, pa_fn] = get_isa_funcs();
 
 drag_fn = @(t, z, vz, vx) compute_drag_and_alpha(t, z, vz, vx, v_w, rho_fn, A, Cd);
 
@@ -166,7 +166,7 @@ ax.TickLabelInterpreter = 'latex';
 %% FUNCTION DEFINITIONS
 
 % ISA Properties Wrapper
-function [rho_fn, p_fn] = get_isa_props()
+function [rho_fn, p_fn] = get_isa_funcs()
 % Returns function handles for atmospheric density and pressure from ISA model.
 % The returned functions handle negative altitudes by clamping them to zero.
 %
@@ -174,13 +174,13 @@ function [rho_fn, p_fn] = get_isa_props()
 %   rho_fn - Function handle for density as a function of altitude [kg/m^3]
 %   p_fn   - Function handle for pressure as a function of altitude [Pa]
 
-    function [rho, p] = isa_props_at_alt(altitude)
+    function [rho, p] = isa_value_at_alt(altitude)
         altitude(altitude < 0) = 0;
         [~, ~, p, rho] = atmosisa(altitude);
     end
-    
-    rho_fn = @(z) isa_props_at_alt(z);
-    p_fn = @(z) isa_props_at_alt(z);
+
+    rho_fn = @(z) isa_value_at_alt(z);
+    p_fn = @(z) isa_value_at_alt(z);
 end
 
 %  Wind Effect and Drag Function
