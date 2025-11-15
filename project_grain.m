@@ -28,6 +28,7 @@ c_star = 5088 * 12;  % [in/s]
 % the centerline, while the star corners are a distance r1/2. The length 
 % of a star face is the hypotenuse of this triangle.
 L(1) = r1/2 / cosd(theta);  % [in]
+fprintf('Initial star face length L(0) = %.4f in\n', L(1));
 % Initial Burn area. Side area is A = L(w) * z(w). The code divides the grain into 12
 % identical arcs, so this calculates the burn area of one face and then
 % multiplies by a factor of 12. The top area is determined by dividing the
@@ -96,4 +97,13 @@ while Ab_checker == 0
         end
     end
 end
+
+figure;
+plot(t, Ab, 'LineWidth', 2);
+grid on;
+title('Grain Area vs. Time', 'Interpreter', 'latex', 'FontSize', 20);
+xlabel('Time (s)', 'Interpreter', 'latex', 'FontSize', 15);
+ylabel('Grain Area (in$^2$)', 'Interpreter', 'latex', 'FontSize', 15);
+set(gca, 'TickLabelInterpreter', 'latex');
+
 end

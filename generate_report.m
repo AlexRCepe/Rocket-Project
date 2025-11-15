@@ -60,9 +60,12 @@ catch ME
 end
 
 % --- Cleanup ---
-% Delete the temporary script and its generated folder
+% Delete the temporary script and its generated folder/files
 if exist(temp_script_name, 'file')
     delete(temp_script_name);
+end
+if exist('html', 'file')
+    delete('html');
 end
 if exist('html', 'dir')
     rmdir('html', 's');
