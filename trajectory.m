@@ -9,11 +9,14 @@ m_kit = 0.625;       % Dry mass                   [kg]
 m_in = 0.226796;     % Inert mass of the motor    [kg]
 A = 0.01081;         % Cross-sectional area       [m^2]
 Cd = 0.63;           % Drag coefficient
-v_w = 15.9;          % Wind speed in +x direction [km/h]
 De = 0.63;           % Exit diameter               [in]
 launch_angle_deg = 0;% Launch angle from vertical  [deg]
 
-v_w = v_w / 3.6;     % From km/h to m/s
+% Wind Profile
+wind_profile = WindProfile('wind_data.csv');
+
+v_w = 0; % for plotting compatibility, will be removed later
+
 launch_angle_rad = deg2rad(launch_angle_deg);
 
 Ae = pi * (De * 0.0254 / 2)^2; % Nozzle exit area [m^2]
@@ -43,7 +46,7 @@ m_dry = m_kit + m_in;
 % Air Density and Pressure Model (ISA)
 [rho_fn, pa_fn] = get_isa_funcs();
 
-drag_fn = @(t, z, vz, vx) compute_drag_and_alpha(t, z, vz, vx, v_w, rho_fn, A, Cd);
+drag_fn = @(t, z, vz, vx) compute_drag_and_alpha(t, z, vz, vx, wind_profile, rho_fn, A, Cd);
 
 %%  INTEGRATION
 
@@ -68,7 +71,9 @@ alpha = zeros(size(t));
 for i = 1:length(t)
     vx = x(i,3); % Horizontal velocity
     vz = x(i,4); % Vertical velocity
+    z = x(i,2); % Altitude
 
+    v_w = wind_profile.get_wind_speed(z);
     v_rocket_mag = sqrt(vx^2 + vz^2);
     v_r = [vx - v_w; vz];
     v_rel_mag = norm(v_r);
@@ -184,7 +189,7 @@ function [rho_fn, p_fn] = get_isa_funcs()
 end
 
 %  Wind Effect and Drag Function
-function [D, alpha] = compute_drag_and_alpha(t, z, vz, vx, v_w, rho_fn, A, Cd)
+function [D, alpha] = compute_drag_and_alpha(~, z, vz, vx, wind_profile, rho_fn, A, Cd)
 % Computes the drag force vector and angle of attack.
 %
 % Inputs:
@@ -192,7 +197,7 @@ function [D, alpha] = compute_drag_and_alpha(t, z, vz, vx, v_w, rho_fn, A, Cd)
 %   z      - Altitude [m]
 %   vz     - Vertical velocity [m/s]
 %   vx     - Horizontal velocity [m/s]
-%   v_w    - Wind speed [m/s]
+%   wind_profile - WindProfile object
 %   rho_fn - Function handle for atmospheric density
 %   A      - Cross-sectional area [m^2]
 %   Cd     - Drag coefficient
@@ -201,6 +206,7 @@ function [D, alpha] = compute_drag_and_alpha(t, z, vz, vx, v_w, rho_fn, A, Cd)
 %   D      - Drag force vector [Dx; Dz] [N]
 %   alpha  - Angle of attack [rad]
 
+    v_w = wind_profile.get_wind_speed(z);
     v_r = [vx - v_w; vz]; % Relative velocity vector (rocket velocity - wind)
     v_rel_mag = norm(v_r);
 
@@ -248,12 +254,12 @@ function dxdt = rocket_dynamics(t, x, thrust_fn, mdot_fn, drag_fn, g, m_dry, pa_
 % Outputs:
 %   dxdt             - Derivative of the state vector
 
-    x_pos = x(1);  % Horizontal position [m]
+    % x_pos = x(1);  % Horizontal position [m] - Unused
     z = x(2);      % Altitude [m]
     vx = x(3);     % Horizontal velocity [m/s]
     vz = x(4);     % Vertical velocity [m/s]
     m = x(5);      % Mass [kg]
-    v_loss = x(6); % Cumulative gravity loss [m/s]
+    % v_loss = x(6); % Cumulative gravity loss [m/s] - Unused
     
     % Thrust
     T_vac = thrust_fn(t);
