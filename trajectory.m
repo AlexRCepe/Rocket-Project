@@ -9,7 +9,7 @@ m_kit = 0.625;       % Dry mass                   [kg]
 m_in = 0.226796;     % Inert mass of the motor    [kg]
 A = 0.01081;         % Cross-sectional area       [m^2]
 Cd = 0.63;           % Drag coefficient
-v_w = 15.9;          % Wind speed in +x direction [km/h]
+v_w = 29;          % Wind speed in +x direction [km/h]
 De = 0.63;           % Exit diameter               [in]
 launch_angle_deg = 0;% Launch angle from vertical  [deg]
 
